@@ -44,11 +44,12 @@ public class User {
     @Column(nullable = false)
     private String address;
 
-    private String addRole(String role){
+    private void addRole(String role){
         this.roles.add(role);
     }
 
     private  boolean hasRole(String role){
         return  this.roles.contains(role);
     }
+
 }

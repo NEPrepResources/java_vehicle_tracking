@@ -31,12 +31,13 @@ public class PlateNumber {
     @Enumerated(EnumType.STRING)
     private PlateStatus status;
 
-    @OneToMany(mappedBy = "plateNumber", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "plateNumber", fetch = FetchType.LAZY)
     private  Vehicle vehicle;
 
     public  enum PlateStatus{
         AVAILABLE,
         IN_USE
     }
+
 
 }
