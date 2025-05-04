@@ -11,13 +11,14 @@ import lombok.NoArgsConstructor;
 import java.util.Set;
 
 public class UserDTOs {
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public  static  class SignupRequest{
         @NotBlank(message = "Names are required")
         @Size(min=3, max=100, message = "Names must be between 3 and 100 characters")
         private  String names;
+
+        @NotBlank(message = "Email is required")
+        @Size(min=3, max=100, message = "Email must be between 3 and 100 characters")
+        private  String email;
 
         @NotBlank(message = "Phone is required")
         @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be valid")
@@ -33,6 +34,77 @@ public class UserDTOs {
 
         @NotBlank(message = "Address is required")
         private String address;
+
+        private String role;
+
+        public SignupRequest() {
+        }
+
+        public SignupRequest(String names, String email, String phone, String nationalId, String password, String address, String role) {
+            this.names = names;
+            this.email = email;
+            this.phone = phone;
+            this.nationalId = nationalId;
+            this.password = password;
+            this.address = address;
+            this.role = role;
+        }
+
+        public @NotBlank(message = "Names are required") @Size(min = 3, max = 100, message = "Names must be between 3 and 100 characters") String getNames() {
+            return names;
+        }
+
+        public void setNames(@NotBlank(message = "Names are required") @Size(min = 3, max = 100, message = "Names must be between 3 and 100 characters") String names) {
+            this.names = names;
+        }
+
+        public @NotBlank(message = "Email is required") @Size(min = 3, max = 100, message = "Email must be between 3 and 100 characters") String getEmail() {
+            return email;
+        }
+
+        public void setEmail(@NotBlank(message = "Email is required") @Size(min = 3, max = 100, message = "Email must be between 3 and 100 characters") String email) {
+            this.email = email;
+        }
+
+        public @NotBlank(message = "Phone is required") @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be valid") String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(@NotBlank(message = "Phone is required") @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be valid") String phone) {
+            this.phone = phone;
+        }
+
+        public @NotBlank(message = "National id is required") @Size(min = 16, max = 16, message = "National ID must be 16 characters") String getNationalId() {
+            return nationalId;
+        }
+
+        public void setNationalId(@NotBlank(message = "National id is required") @Size(min = 16, max = 16, message = "National ID must be 16 characters") String nationalId) {
+            this.nationalId = nationalId;
+        }
+
+        public @NotBlank(message = "Password is required") @Size(min = 8, message = "Password must be at least 8 characters") String getPassword() {
+            return password;
+        }
+
+        public void setPassword(@NotBlank(message = "Password is required") @Size(min = 8, message = "Password must be at least 8 characters") String password) {
+            this.password = password;
+        }
+
+        public @NotBlank(message = "Address is required") String getAddress() {
+            return address;
+        }
+
+        public void setAddress(@NotBlank(message = "Address is required") String address) {
+            this.address = address;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
     }
     @Data
     @NoArgsConstructor
@@ -57,6 +129,7 @@ public class UserDTOs {
         private String nationalId;
         private String address;
         private Set<String> roles;
+
     }
 
     @Data
@@ -67,6 +140,7 @@ public class UserDTOs {
         private  String type="Bearer";
         private Long id;
         private String email;
+        private String username;
         private Set<String> roles;
     }
 }
