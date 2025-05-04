@@ -1,0 +1,83 @@
+package com.rra.vehicletracking.service;
+
+import com.rra.vehicletracking.dto.PlateNumberDTOs.PlateNumberRequest;
+import com.rra.vehicletracking.dto.PlateNumberDTOs.PlateNumberResponse;
+import com.rra.vehicletracking.entity.PlateNumber;
+import com.rra.vehicletracking.entity.VehicleOwner;
+import com.rra.vehicletracking.repository.PlateNumberRepository;
+import com.rra.vehicletracking.repository.VehicleOwnerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PlateNumberService {
+
+    @Autowired
+    private PlateNumberRepository plateNumberRepository;
+
+    @Autowired
+    private VehicleOwnerRepository vehicleOwnerRepository;
+
+    public PlateNumberResponse registerPlateNumber(PlateNumberRequest request) {
+        if (plateNumberRepository.existsByPlateNumber(request.getPlateNumber())) {
+            throw new RuntimeException("Plate number already exists");
+        }
+
+        VehicleOwner owner = vehicleOwnerRepository.findById(request.getOwnerId())
+                .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + request.getOwnerId()));
+
+        PlateNumber plateNumber = new PlateNumber();
+        plateNumber.setPlateNumber(request.getPlateNumber());
+        plateNumber.setIssuedDate(request.getIssuedDate());
+        plateNumber.setOwner(owner);
+        plateNumber.setStatus(PlateNumber.PlateStatus.AVAILABLE);
+
+        PlateNumber savedPlateNumber = plateNumberRepository.save(plateNumber);
+        return mapToResponse(savedPlateNumber);
+    }
+
+    public Page<PlateNumberResponse> getPlateNumbersByOwner(Long ownerId, Pageable pageable) {
+        VehicleOwner owner = vehicleOwnerRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + ownerId));
+
+        Page<PlateNumber> plateNumbers = plateNumberRepository.findByOwner(owner, pageable);
+        return plateNumbers.map(this::mapToResponse);
+    }
+
+    public List<PlateNumberResponse> getAvailablePlateNumbersByOwner(Long ownerId) {
+        VehicleOwner owner = vehicleOwnerRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + ownerId));
+
+        List<PlateNumber> availablePlateNumbers = plateNumberRepository.findAvailablePlateNumbers(owner);
+        return availablePlateNumbers.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    public PlateNumberResponse getPlateNumberById(Long id) {
+        PlateNumber plateNumber = plateNumberRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plate number not found with id: " + id));
+        return mapToResponse(plateNumber);
+    }
+
+    public PlateNumberResponse getPlateNumberByPlateNumber(String plateNumberStr) {
+        PlateNumber plateNumber = plateNumberRepository.findByPlateNumber(plateNumberStr)
+                .orElseThrow(() -> new RuntimeException("Plate number not found: " + plateNumberStr));
+        return mapToResponse(plateNumber);
+    }
+
+    private PlateNumberResponse mapToResponse(PlateNumber plateNumber) {
+        return new PlateNumberResponse(
+                plateNumber.getId(),
+                plateNumber.getPlateNumber(),
+                plateNumber.getIssuedDate(),
+                plateNumber.getOwner().getId(),
+                plateNumber.getOwner().getOwnerNames(),
+                plateNumber.getStatus()
+        );
+    }
+}
