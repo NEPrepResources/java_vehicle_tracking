@@ -36,12 +36,12 @@ public class VehicleOwner {
 
     public void addPlateNumber(PlateNumber plateNumber){
         plateNumbers.add(plateNumber);
-        plateNumbers.setOwner(this);
+        plateNumber.setOwner(this);
     }
 
     public  void removePlateNumber(PlateNumber plateNumber){
         plateNumbers.remove(plateNumber);
-        plateNumbers.setOwner(null);
+        plateNumber.setOwner(null);
     }
 
 
