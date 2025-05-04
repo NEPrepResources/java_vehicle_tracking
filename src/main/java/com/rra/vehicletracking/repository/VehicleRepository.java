@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long>{
     Optional<Vehicle> findByChassisNumber(String chassisNumber);
-    Optional<Vehicle> findByPlateNumber_PlateNumber(String plateNumber);
+    Optional<Vehicle> findByPlateNumberPlateNumber(String plateNumber);
     Page<Vehicle> findByCurrentOwner(VehicleOwner owner, Pageable pageable);
-    boolean existByChassisNumber(String chassisNumber);
+    boolean existsByChassisNumber(String chassisNumber);
 }

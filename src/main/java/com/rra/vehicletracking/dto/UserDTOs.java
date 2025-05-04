@@ -106,7 +106,6 @@ public class UserDTOs {
             this.role = role;
         }
     }
-    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static  class LoginRequest{
@@ -116,9 +115,24 @@ public class UserDTOs {
 
         @NotBlank(message = "Password is required")
         private String password;
+
+        public @NotBlank(message = "Email is required") @Email(message = "Email must be valid") String getEmail() {
+            return email;
+        }
+
+        public void setEmail(@NotBlank(message = "Email is required") @Email(message = "Email must be valid") String email) {
+            this.email = email;
+        }
+
+        public @NotBlank(message = "Password is required") String getPassword() {
+            return password;
+        }
+
+        public void setPassword(@NotBlank(message = "Password is required") String password) {
+            this.password = password;
+        }
     }
 
-    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public  static  class UserResponse{
@@ -130,6 +144,61 @@ public class UserDTOs {
         private String address;
         private Set<String> roles;
 
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getNames() {
+            return names;
+        }
+
+        public void setNames(String names) {
+            this.names = names;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getNationalId() {
+            return nationalId;
+        }
+
+        public void setNationalId(String nationalId) {
+            this.nationalId = nationalId;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public Set<String> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(Set<String> roles) {
+            this.roles = roles;
+        }
     }
 
     @Data
@@ -142,5 +211,66 @@ public class UserDTOs {
         private String email;
         private String username;
         private Set<String> roles;
+
+        public JwtResponse() {
+        }
+
+        public JwtResponse(Set<String> roles, String username, String email, Long id, String type, String token) {
+            this.roles = roles;
+            this.username = username;
+            this.email = email;
+            this.id = id;
+            this.type = type;
+            this.token = token;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public Set<String> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(Set<String> roles) {
+            this.roles = roles;
+        }
     }
 }

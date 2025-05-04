@@ -11,7 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PlateNumberService {
@@ -32,11 +34,16 @@ public class PlateNumberService {
 
         PlateNumber plateNumber = new PlateNumber();
         plateNumber.setPlateNumber(request.getPlateNumber());
-        plateNumber.setIssuedDate(request.getIssuedDate());
-        plateNumber.setOwner(owner);
+        plateNumber.setIssuedDate(request.getIssuedDate() != null ? request.getIssuedDate() : LocalDate.now());
+        plateNumber.setVehicleOwner(owner); // Changed from setOwner to setVehicleOwner
         plateNumber.setStatus(PlateNumber.PlateStatus.AVAILABLE);
 
         PlateNumber savedPlateNumber = plateNumberRepository.save(plateNumber);
+
+        // Add the plate number to the owner's collection
+        owner.addPlateNumber(savedPlateNumber);
+        vehicleOwnerRepository.save(owner);
+
         return mapToResponse(savedPlateNumber);
     }
 
@@ -44,7 +51,7 @@ public class PlateNumberService {
         VehicleOwner owner = vehicleOwnerRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + ownerId));
 
-        Page<PlateNumber> plateNumbers = plateNumberRepository.findByOwner(owner, pageable);
+        Page<PlateNumber> plateNumbers = plateNumberRepository.findByVehicleOwner(owner, pageable); // Changed from findByOwner to findByVehicleOwner
         return plateNumbers.map(this::mapToResponse);
     }
 
@@ -52,10 +59,10 @@ public class PlateNumberService {
         VehicleOwner owner = vehicleOwnerRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + ownerId));
 
-        List<PlateNumber> availablePlateNumbers = plateNumberRepository.findAvailablePlateNumbers(owner);
+        List<PlateNumber> availablePlateNumbers = plateNumberRepository.findByVehicleOwnerAndStatus(owner, PlateNumber.PlateStatus.AVAILABLE); // Updated query method
         return availablePlateNumbers.stream()
                 .map(this::mapToResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public PlateNumberResponse getPlateNumberById(Long id) {
@@ -75,8 +82,8 @@ public class PlateNumberService {
                 plateNumber.getId(),
                 plateNumber.getPlateNumber(),
                 plateNumber.getIssuedDate(),
-                plateNumber.getOwner().getId(),
-                plateNumber.getOwner().getOwnerNames(),
+                plateNumber.getVehicleOwner().getId(), // Changed from getOwner to getVehicleOwner
+                plateNumber.getVehicleOwner().getOwnerNames(), // Changed from getOwner to getVehicleOwner
                 plateNumber.getStatus()
         );
     }
