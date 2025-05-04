@@ -9,79 +9,92 @@ import com.rra.vehicletracking.security.JwtUtils;
 import com.rra.vehicletracking.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class AuthService {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    PasswordEncoder encoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     public JwtResponse authenticateUser(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail().trim().toLowerCase(),
+                            request.getPassword()
+                    )
+            );
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
 
-        Set<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toSet());
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        return new JwtResponse(
-                roles,
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                userDetails.getId(),
-                "Bearer",
-                jwt
-        );
+            Set<String> roles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toSet());
+
+            return new JwtResponse(
+                    jwt,                       // token
+                    "Bearer",                  // type
+                    userDetails.getId(),       // id
+                    userDetails.getUsername(), // username
+                    userDetails.getEmail(),    // email
+                    roles                     // roles
+            );
+        } catch (BadCredentialsException e) {
+            throw new RuntimeException("Invalid email or password");
+        }
     }
 
     public User registerUser(SignupRequest request) {
-        if(userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail().trim().toLowerCase())) {
             throw new RuntimeException("Error: Email is already in use!");
         }
-        if(userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhone(request.getPhone().trim())) {
             throw new RuntimeException("Error: Phone is already in use!");
         }
-        if(userRepository.existsByNationalID(request.getNationalId())) {
+        if (userRepository.existsByNationalID(request.getNationalId().trim())) {
             throw new RuntimeException("Error: National ID is already in use!");
         }
 
         User user = new User();
-        user.setNames(request.getNames());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setNationalID(request.getNationalId());
-        user.setPassword(encoder.encode(request.getPassword())); // Encode the password here
-        user.setAddress(request.getAddress());
+        user.setNames(request.getNames().trim());
+        user.setEmail(request.getEmail().trim().toLowerCase());
+        user.setPhone(request.getPhone().trim());
+        user.setNationalID(request.getNationalId().trim());
+        user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
+        user.setAddress(request.getAddress().trim());
 
         Set<String> roles = new HashSet<>();
-        if(request.getRole() != null && request.getRole().equals("admin")) {
+        if (request.getRole() != null && request.getRole().equalsIgnoreCase("admin")) {
             roles.add("ROLE_ADMIN");
         } else {
             roles.add("ROLE_USER");
         }
         user.setRoles(roles);
+
         return userRepository.save(user);
     }
 }
