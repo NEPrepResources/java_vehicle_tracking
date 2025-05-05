@@ -65,9 +65,12 @@ public class WebSecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/swagger-ui/index.html",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/configuration/**",
+                                "/swagger-ui/**",
+                                "/webjars/springfox-swagger-ui/**",
+                                "/v3/api-docs/swagger-config"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
