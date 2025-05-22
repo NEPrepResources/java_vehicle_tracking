@@ -70,4 +70,24 @@ public class AuthController {
                     .body(e.getMessage());
         }
     }
+
+    @PostMapping("/create-admin")
+    @Operation(
+            summary = "Create Admin User",
+            description = "Create a one-time admin user with hardcoded credentials (manual execution only)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Admin created successfully", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request - Admin already exists", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    public ResponseEntity<?> createAdminUser() {
+        try {
+            authService.createAdminUser();
+            return ResponseEntity.ok("Admin created successfully!");
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
 }

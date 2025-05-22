@@ -97,4 +97,25 @@ public class AuthService {
 
         return userRepository.save(user);
     }
+
+    public void createAdminUser() {
+        String adminEmail = "admin@rra.rw";
+        if (userRepository.existsByEmail(adminEmail)) {
+            throw new RuntimeException("Admin already exists");
+        }
+
+        User admin = new User();
+        admin.setNames("Admin");
+        admin.setEmail(adminEmail);
+        admin.setPhone("0781234567");
+        admin.setNationalID("ADMIN12345123456");
+        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setAddress("Admin Office");
+
+        Set<String> roles = new HashSet<>();
+        roles.add("ROLE_ADMIN");
+        admin.setRoles(roles);
+
+        userRepository.save(admin);
+    }
 }
