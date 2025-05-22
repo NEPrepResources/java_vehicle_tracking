@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 
 public class VehicleOwnershipHistoryDTOs {
 
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class OwnershipHistoryResponse {
         private Long id;
         private Long vehicleId;

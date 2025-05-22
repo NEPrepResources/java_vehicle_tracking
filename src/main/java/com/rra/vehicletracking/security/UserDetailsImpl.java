@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+//@AllArgsConstructor
 @Getter
 public class UserDetailsImpl implements  UserDetails{
     private static final long serialVersionUID = 1L;

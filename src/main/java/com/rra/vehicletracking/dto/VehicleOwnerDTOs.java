@@ -60,8 +60,6 @@ public class VehicleOwnerDTOs {
         }
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class OwnerResponse {
         private Long id;
         private String ownerNames;

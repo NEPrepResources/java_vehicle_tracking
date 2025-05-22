@@ -93,8 +93,6 @@ public class VehicleDTOs {
         }
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class VehicleResponse {
         private Long id;
         private String chassisNumber;

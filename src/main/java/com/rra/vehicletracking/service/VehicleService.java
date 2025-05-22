@@ -36,7 +36,7 @@ public class VehicleService {
 
     @Transactional
     public VehicleResponse registerVehicle(VehicleRegistrationRequest request) {
-        if (vehicleRepository.existsByChassisNumber(request.getChassisNumber())) { // Changed from existByChassisNumber to existsByChassisNumber
+        if (vehicleRepository.existsByChassisNumber(request.getChassisNumber())) {
             throw new RuntimeException("Vehicle with this chassis number already exists");
         }
 
@@ -46,7 +46,6 @@ public class VehicleService {
         PlateNumber plateNumber = plateNumberRepository.findByPlateNumber(request.getPlateNumber())
                 .orElseThrow(() -> new RuntimeException("Plate number not found: " + request.getPlateNumber()));
 
-        // Changed from getOwner() to getVehicleOwner()
         if (!plateNumber.getVehicleOwner().getId().equals(owner.getId())) {
             throw new RuntimeException("Plate number does not belong to this owner");
         }
@@ -82,32 +81,92 @@ public class VehicleService {
     }
 
     @Transactional
+    public VehicleResponse updateVehicle(Long id, VehicleRegistrationRequest request) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+
+        // Check if the new chassis number already exists (and isn't the current one)
+        if (!vehicle.getChassisNumber().equals(request.getChassisNumber()) &&
+                vehicleRepository.existsByChassisNumber(request.getChassisNumber())) {
+            throw new RuntimeException("Vehicle with this chassis number already exists");
+        }
+
+        VehicleOwner owner = vehicleOwnerRepository.findById(request.getOwnerId())
+                .orElseThrow(() -> new RuntimeException("Vehicle owner not found with id: " + request.getOwnerId()));
+
+        PlateNumber newPlateNumber = plateNumberRepository.findByPlateNumber(request.getPlateNumber())
+                .orElseThrow(() -> new RuntimeException("Plate number not found: " + request.getPlateNumber()));
+
+        if (!newPlateNumber.getVehicleOwner().getId().equals(owner.getId())) {
+            throw new RuntimeException("Plate number does not belong to this owner");
+        }
+
+        if (newPlateNumber.getStatus() != PlateNumber.PlateStatus.AVAILABLE) {
+            throw new RuntimeException("Plate number is already in use");
+        }
+
+        // Update the old plate number status
+        PlateNumber oldPlateNumber = vehicle.getPlateNumber();
+        if (!oldPlateNumber.getPlateNumber().equals(newPlateNumber.getPlateNumber())) {
+            oldPlateNumber.setStatus(PlateNumber.PlateStatus.AVAILABLE);
+            oldPlateNumber.setVehicle(null);
+            plateNumberRepository.save(oldPlateNumber);
+
+            newPlateNumber.setStatus(PlateNumber.PlateStatus.IN_USE);
+            newPlateNumber.setVehicle(vehicle);
+            plateNumberRepository.save(newPlateNumber);
+        }
+
+        // Update vehicle fields
+        vehicle.setChassisNumber(request.getChassisNumber());
+        vehicle.setManufactureCompany(request.getManufactureCompany());
+        vehicle.setManufactureYear(request.getManufactureYear());
+        vehicle.setPrice(request.getPrice());
+        vehicle.setModelName(request.getModelName());
+        vehicle.setCurrentOwner(owner);
+        vehicle.setPlateNumber(newPlateNumber);
+
+        Vehicle updatedVehicle = vehicleRepository.save(vehicle);
+        return mapToResponse(updatedVehicle);
+    }
+
+    @Transactional
+    public void deleteVehicle(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
+
+        // Update the plate number status
+        PlateNumber plateNumber = vehicle.getPlateNumber();
+        plateNumber.setStatus(PlateNumber.PlateStatus.AVAILABLE);
+        plateNumber.setVehicle(null);
+        plateNumberRepository.save(plateNumber);
+
+        // Delete associated ownership history
+        ownershipHistoryRepository.deleteAll(ownershipHistoryRepository.findByVehicle(vehicle, Pageable.unpaged()).getContent());
+
+        vehicleRepository.delete(vehicle);
+    }
+
+    @Transactional
     public VehicleResponse transferVehicle(VehicleTransferRequest request) {
-        // Find the vehicle by identifier (can be chassis number or plate number)
         Vehicle vehicle = null;
         if (request.getVehicleIdentifier().matches("^[A-Z0-9]{6,17}$")) {
-            // It's a chassis number
             vehicle = vehicleRepository.findByChassisNumber(request.getVehicleIdentifier())
                     .orElseThrow(() -> new RuntimeException("Vehicle not found with chassis number: " + request.getVehicleIdentifier()));
         } else {
-            // It's a plate number
-            vehicle = vehicleRepository.findByPlateNumberPlateNumber(request.getVehicleIdentifier()) // Changed from findByPlateNumber_PlateNumber
+            vehicle = vehicleRepository.findByPlateNumberPlateNumber(request.getVehicleIdentifier())
                     .orElseThrow(() -> new RuntimeException("Vehicle not found with plate number: " + request.getVehicleIdentifier()));
         }
 
-        // Get the new owner
         VehicleOwner newOwner = vehicleOwnerRepository.findById(request.getNewOwnerId())
                 .orElseThrow(() -> new RuntimeException("New owner not found with id: " + request.getNewOwnerId()));
 
-        // Get the old plate number
         PlateNumber oldPlateNumber = vehicle.getPlateNumber();
         String oldPlateNumberValue = oldPlateNumber.getPlateNumber();
 
-        // Get the new plate number
         PlateNumber newPlateNumber = plateNumberRepository.findByPlateNumber(request.getNewPlateNumber())
                 .orElseThrow(() -> new RuntimeException("New plate number not found: " + request.getNewPlateNumber()));
 
-        // Changed from getOwner() to getVehicleOwner()
         if (!newPlateNumber.getVehicleOwner().getId().equals(newOwner.getId())) {
             throw new RuntimeException("New plate number does not belong to the new owner");
         }
@@ -116,7 +175,6 @@ public class VehicleService {
             throw new RuntimeException("New plate number is already in use");
         }
 
-        // Mark the old ownership history as ended
         VehicleOwnershipHistory latestHistory = ownershipHistoryRepository.findByVehicleOrderByStartDateDesc(vehicle)
                 .stream()
                 .findFirst()
@@ -124,7 +182,6 @@ public class VehicleService {
         latestHistory.setEndDate(LocalDateTime.now());
         ownershipHistoryRepository.save(latestHistory);
 
-        // Create new ownership history record
         VehicleOwnershipHistory newOwnershipHistory = new VehicleOwnershipHistory();
         newOwnershipHistory.setVehicle(vehicle);
         newOwnershipHistory.setOwner(newOwner);
@@ -156,7 +213,7 @@ public class VehicleService {
     }
 
     public VehicleResponse getVehicleByPlateNumber(String plateNumber) {
-        Vehicle vehicle = vehicleRepository.findByPlateNumberPlateNumber(plateNumber) // Changed from findByPlateNumber_PlateNumber
+        Vehicle vehicle = vehicleRepository.findByPlateNumberPlateNumber(plateNumber)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with plate number: " + plateNumber));
         return mapToResponse(vehicle);
     }
