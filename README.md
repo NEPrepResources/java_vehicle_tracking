@@ -1,246 +1,142 @@
-Here's a comprehensive `README.md` file for your Vehicle Tracking System API, including all working endpoints and testing data:
+# Vehicle Tracking System
 
-```markdown
-# RRA Vehicle Tracking System API
+## Overview
+A comprehensive vehicle tracking and management system built using Jakarta EE and Spring Framework. The system handles vehicle registration, ownership management, and transfer of ownership while maintaining a complete history of vehicle-related transactions.
 
-![RRA Logo](https://www.rra.gov.rw/fileadmin/templates/images/logo.png)
+## System Architecture
 
-## Table of Contents
-- [API Documentation](#api-documentation)
-- [Authentication](#authentication)
-- [Endpoints](#endpoints)
-  - [User Management](#user-management)
-  - [Vehicle Owners](#vehicle-owners)
-  - [Plate Numbers](#plate-numbers)
-  - [Vehicle Registration](#vehicle-registration)
-  - [Vehicle Transfer](#vehicle-transfer)
-  - [Ownership History](#ownership-history)
-- [Testing Data](#testing-data)
-- [Setup Instructions](#setup-instructions)
-- [Swagger UI](#swagger-ui)
+### Technology Stack
+- **Backend Framework:** Spring MVC
+- **Database Access:** Spring Data JPA
+- **Java Version:** Java 17
+- **API Documentation:** Swagger UI
+- **Authentication:** JWT (JSON Web Tokens)
+- **Database:** [Your database choice]
 
-## API Documentation
+### Core Components
+1. **Authentication Service**
+   - User registration and authentication
+   - JWT token generation and validation
+   - Role-based access control (ADMIN, USER)
 
-Base URL: `http://localhost:9000/api`
+2. **Owner Management Service**
+   - Vehicle owner registration
+   - Owner information management
+   - Owner search functionality
 
-## Authentication
+3. **Vehicle Management Service**
+   - Vehicle registration
+   - Plate number management
+   - Vehicle search and tracking
+   - Transfer of ownership processing
 
-All endpoints (except auth) require JWT authentication.
+4. **History Tracking Service**
+   - Ownership history logging
+   - Transaction records
+   - Audit trail maintenance
 
-1. Register a user first
-2. Login to get JWT token
-3. Include token in headers:  
-   `Authorization: Bearer <your_token>`
-
-## Endpoints
+## Core Features
 
 ### User Management
+- User registration with role assignment
+- Secure authentication using JWT
+- User profile management
 
-#### Register User
-```
-POST /auth/signup
-```
-Request:
-```json
-{
-  "names": "Admin User",
-  "email": "admin@rra.gov.rw",
-  "phone": "+250788123456",
-  "nationalId": "1234567890123456",
-  "password": "admin123",
-  "address": "Kigali, Rwanda",
-  "role": "admin"
-}
-```
-
-#### Login
-```
-POST /auth/signin
-```
-Request:
-```json
-{
-  "email": "admin@rra.gov.rw",
-  "password": "admin123"
-}
-```
-Response:
-```json
-{
-  "token": "eyJhbGci...",
-  "type": "Bearer",
-  "id": 1,
-  "username": "Admin User",
-  "email": "admin@rra.gov.rw",
-  "roles": ["ROLE_ADMIN"]
-}
-```
-
-### Vehicle Owners
-
-#### Create Owner
-```
-POST /owners
-```
-Request:
-```json
-{
-  "ownerNames": "John Doe",
-  "nationalId": "1199887766554433",
-  "phoneNumber": "+250788112233",
-  "address": "Kigali, Rwanda"
-}
-```
-
-#### Search Owners
-```
-GET /owners/search?nationalId=1199887766554433
-GET /owners/search?email=admin@rra.gov.rw
-GET /owners/search?phone=+250788112233
-```
-
-#### Get Owner by ID
-```
-GET /owners/{id}
-```
-
-### Plate Numbers
-
-#### Register Plate
-```
-POST /plate-numbers
-```
-Request:
-```json
-{
-  "plateNumber": "RAA 123A",
-  "ownerId": 1
-}
-```
-
-#### Get Plates by Owner
-```
-GET /owners/{ownerId}/plates
-```
+### Vehicle Owner Management
+- Owner registration with personal details
+- Search functionality by National ID, email, or phone
+- Owner profile updates
 
 ### Vehicle Registration
+- New vehicle registration with details
+- Plate number assignment
+- Vehicle search by plate number or chassis number
 
-#### Register Vehicle
-```
-POST /vehicles
-```
-Request:
-```json
-{
-  "chassisNumber": "ABC123456789",
-  "manufactureCompany": "Toyota",
-  "manufactureYear": 2020,
-  "price": 25000,
-  "modelName": "RAV4",
-  "ownerId": 1,
-  "plateNumber": "RAA 123A"
-}
-```
+### Vehicle Transfer System
+- Ownership transfer processing
+- New plate number assignment
+- Transfer history maintenance
 
-#### Search Vehicles
-```
-GET /vehicles/plate/{plateNumber}
-GET /vehicles/chassis/{chassisNumber}
-GET /vehicles/search?nationalId=1199887766554433
-```
+### Reporting and History
+- Complete vehicle ownership history
+- Transaction logging
+- Audit trail for all operations
 
-### Vehicle Transfer
+## Data Flow
 
-#### Transfer Vehicle
-```
-POST /vehicles/transfer
-```
-Request:
-```json
-{
-  "vehicleIdentifier": "RAA 123A",
-  "newOwnerId": 2,
-  "newPlateNumber": "RAA 456B",
-  "purchasePrice": 30000,
-  "comments": "Sold to new owner"
-}
-```
+### Main Data Entities
+1. **Users**
+   - Authentication credentials
+   - Personal information
+   - Role assignments
 
-### Ownership History
+2. **Vehicle Owners**
+   - Personal details
+   - Contact information
+   - Ownership records
 
-#### Get Ownership History
-```
-GET /vehicles/{vehicleId}/history
-```
-Response:
-```json
-[
-  {
-    "ownerName": "John Doe",
-    "startDate": "2025-05-05",
-    "endDate": "2025-05-10",
-    "purchasePrice": 25000,
-    "plateNumber": "RAA 123A"
-  },
-  {
-    "ownerName": "New Owner",
-    "startDate": "2025-05-10",
-    "endDate": null,
-    "purchasePrice": 30000,
-    "plateNumber": "RAA 456B"
-  }
-]
-```
+3. **Vehicles**
+   - Vehicle specifications
+   - Registration details
+   - Current ownership status
 
-## Testing Data
+4. **Plate Numbers**
+   - Unique identifiers
+   - Assignment status
+   - Historical records
 
-### Users
-| Field        | Value                   |
-|--------------|-------------------------|
-| Names        | Admin User              |
-| Email        | admin@rra.gov.rw        |
-| Phone        | +250788123456           |
-| National ID  | 1234567890123456        |
-| Password     | admin123                |
-| Role         | ROLE_ADMIN              |
+5. **Transfer Records**
+   - Transaction details
+   - Price information
+   - Timestamp data
 
-### Vehicle Owners
-| Field        | Value                   |
-|--------------|-------------------------|
-| Owner Names  | John Doe                |
-| National ID  | 1199887766554433        |
-| Phone        | +250788112233           |
-| Address      | Kigali, Rwanda          |
+### API Endpoints Structure
+- `/api/auth/*` - Authentication endpoints
+- `/api/owners/*` - Owner management endpoints
+- `/api/vehicles/*` - Vehicle management endpoints
+- `/api/plate-numbers/*` - Plate number management endpoints
 
-### Plate Numbers
-| Plate Number | Owner ID | Status    |
-|--------------|----------|-----------|
-| RAA 123A     | 1        | AVAILABLE |
-| RAA 456B     | 2        | AVAILABLE |
+## Security Implementation
+- JWT-based authentication
+- Role-based access control
+- Secure endpoint protection
+- Input validation and sanitization
 
-### Vehicles
-| Chassis      | Model | Year | Price | Plate    | Owner |
-|--------------|-------|------|-------|----------|-------|
-| ABC123456789 | RAV4  | 2020 | 25000 | RAA 123A | 1     |
+## Database Schema Overview
+The system uses a relational database with the following core tables:
+- Users
+- Owners
+- Vehicles
+- PlateNumbers
+- TransferHistory
+- Roles
 
-## Setup Instructions
+## System Requirements
+- Java 17 or higher
+- Maven for dependency management
+- [Your database requirement]
+- Minimum 2GB RAM
+- 1GB free disk space
 
+## Installation and Setup
 1. Clone the repository
-2. Configure database in `application.properties`
-3. Run the application:
-```bash
-mvn spring-boot:run
-```
-4. Access API at `http://localhost:9000/api`
+2. Configure database properties
+3. Run database migrations
+4. Build the project using Maven
+5. Deploy on your preferred server
 
-## Swagger UI
+## API Documentation
+- Swagger UI available at: `http://[your-server]/swagger-ui.html`
+- Comprehensive API documentation with request/response examples
+- Authentication guidelines and token usage
 
-Access API documentation at:  
-`http://localhost:9000/swagger-ui.html`
+## Testing
+- Unit tests for core services
+- Integration tests for API endpoints
+- Mock data available for testing scenarios
 
-![Swagger UI](https://miro.medium.com/v2/resize:fit:1400/1*J9X5JgX1Q0yALbSWz3Vp4w.png)
-
-To authenticate in Swagger:
-1. Click "Authorize" button
-2. Enter: `Bearer <your_jwt_token>`
-3. Click "Authorize"
+## Monitoring and Logging
+- Transaction logging
+- Error tracking
+- Performance monitoring
+- Audit trails
